@@ -18,7 +18,14 @@ client.once('ready', () => {
 
 // Text command handler
 client.on('messageCreate', async (message) => {
-    if (message.author.bot || !message.content.startsWith('!')) return;
+    if (message.author.bot) return;
+
+    // Check roles for any member who sends a message
+    if (message.member) {
+        await checkMemberRoles(message.member);
+    }
+
+    if (!message.content.startsWith('!')) return;
 
     const args = message.content.slice(1).trim().split(/\s+/);
     const commandName = args.shift().toLowerCase();
