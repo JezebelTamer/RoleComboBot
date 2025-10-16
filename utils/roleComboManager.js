@@ -52,6 +52,35 @@ function deleteRoleCombo(guildId, comboId) {
     return true;
 }
 
+// Helper to extract level from role name (e.g., "Level 10" -> 10)
+function getLevelFromRoleName(roleName) {
+    const match = roleName?.match(/^Level (\d+)$/i);
+    return match ? parseInt(match[1]) : null;
+}
+
+// Check if member satisfies a level requirement (has that level or higher)
+function memberHasLevelRole(member, requiredRoleId) {
+    const requiredRole = member.guild.roles.cache.get(requiredRoleId);
+    if (!requiredRole) return false;
+
+    const requiredLevel = getLevelFromRoleName(requiredRole.name);
+    
+    // If not a level role, check exact match
+    if (requiredLevel === null) {
+        return member.roles.cache.has(requiredRoleId);
+    }
+
+    // For level roles, check if member has this level or higher
+    for (const [roleId, role] of member.roles.cache) {
+        const memberLevel = getLevelFromRoleName(role.name);
+        if (memberLevel !== null && memberLevel >= requiredLevel) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 async function checkMemberRoles(member) {
     if (member.user.bot) return false;
 
@@ -62,7 +91,7 @@ async function checkMemberRoles(member) {
 
     for (const combo of combos) {
         const hasAllRequiredRoles = combo.requiredRoles.every(roleId => 
-            member.roles.cache.has(roleId)
+            memberHasLevelRole(member, roleId)
         );
         const hasResultRole = member.roles.cache.has(combo.resultRole);
 
