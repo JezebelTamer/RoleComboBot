@@ -65,8 +65,8 @@ async function handleAdd(message, args) {
     if (!message.guild.roles.cache.has(resultRoleId)) {
         return message.reply('❌ Invalid result role.');
     }
-    if (requiredRoles.length < 2) {
-        return message.reply('❌ You need at least 2 required roles.');
+    if (requiredRoles.length < 1) {
+        return message.reply('❌ You need at least 1 required role.');
     }
     if (requiredRoles.includes(resultRoleId)) {
         return message.reply('❌ The result role cannot be one of the required roles.');
@@ -79,6 +79,11 @@ async function handleAdd(message, args) {
     });
     if (levelRoles.length > 1) {
         return message.reply('❌ You can only have one level role requirement per combo.');
+    }
+
+    // If no level role, require at least 2 roles
+    if (levelRoles.length === 0 && requiredRoles.length < 2) {
+        return message.reply('❌ You need at least 2 required roles (or 1 level role).');
     }
 
     // Check for duplicates
