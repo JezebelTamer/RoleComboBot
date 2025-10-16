@@ -102,8 +102,26 @@ async function handleAdd(message, args) {
         return message.reply('❌ You need at least 2 required roles (or 1 level role).');
     }
 
-    // Check for duplicates
+    // Check for circular dependencies
     const existingCombos = getRoleCombos(message.guild.id);
+    
+    // Check if any required role is a result role in another combo
+    for (const roleId of requiredRoles) {
+        const isResultElsewhere = existingCombos.some(c => c.resultRole === roleId);
+        if (isResultElsewhere) {
+            const roleName = getRoleName(message.guild, roleId);
+            return message.reply(`❌ Cannot use ${roleName} as a requirement - it's already a result role in another combo. This would create a circular dependency.`);
+        }
+    }
+
+    // Check if result role is a requirement in another combo
+    const isRequirementElsewhere = existingCombos.some(c => c.requiredRoles.includes(resultRoleId));
+    if (isRequirementElsewhere) {
+        const roleName = getRoleName(message.guild, resultRoleId);
+        return message.reply(`❌ Cannot use ${roleName} as a result role - it's already a requirement in another combo. This would create a circular dependency.`);
+    }
+
+    // Check for duplicates
     const sortedRequired = [...requiredRoles].sort();
     const duplicate = existingCombos.find(c => 
         c.resultRole === resultRoleId &&
