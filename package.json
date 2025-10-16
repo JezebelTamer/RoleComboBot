@@ -1,0 +1,16 @@
+{
+  "name": "rolecombo-bot",
+  "version": "1.0.0",
+  "description": "A Discord bot that automatically manages role combinations",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": ["discord", "bot", "roles"],
+  "author": "JezebelTamer",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.14.1"
+  }
+}
+
