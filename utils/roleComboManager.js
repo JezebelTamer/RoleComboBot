@@ -89,7 +89,65 @@ async function checkMemberRoles(member) {
 
     let updated = false;
 
+    // Separate single-level-role combos from regular combos
+    const levelOnlyCombos = [];
+    const regularCombos = [];
+
     for (const combo of combos) {
+        if (combo.requiredRoles.length === 1) {
+            const role = member.guild.roles.cache.get(combo.requiredRoles[0]);
+            if (role && getLevelFromRoleName(role.name) !== null) {
+                levelOnlyCombos.push(combo);
+                continue;
+            }
+        }
+        regularCombos.push(combo);
+    }
+
+    // Handle level-only combos (tiered system)
+    if (levelOnlyCombos.length > 0) {
+        const qualifyingLevelCombos = levelOnlyCombos.filter(combo => 
+            memberHasLevelRole(member, combo.requiredRoles[0])
+        );
+
+        // Find the highest level combo they qualify for
+        let highestCombo = null;
+        let highestLevel = -1;
+
+        for (const combo of qualifyingLevelCombos) {
+            const role = member.guild.roles.cache.get(combo.requiredRoles[0]);
+            const level = getLevelFromRoleName(role.name);
+            if (level > highestLevel) {
+                highestLevel = level;
+                highestCombo = combo;
+            }
+        }
+
+        // Grant the highest level role, remove all others
+        const allLevelResultRoles = levelOnlyCombos.map(c => c.resultRole);
+        
+        for (const resultRoleId of allLevelResultRoles) {
+            const hasRole = member.roles.cache.has(resultRoleId);
+            const shouldHave = highestCombo && resultRoleId === highestCombo.resultRole;
+
+            try {
+                if (shouldHave && !hasRole) {
+                    await member.roles.add(resultRoleId);
+                    console.log(`Granted level role ${resultRoleId} to ${member.user.tag}`);
+                    updated = true;
+                } else if (!shouldHave && hasRole) {
+                    await member.roles.remove(resultRoleId);
+                    console.log(`Removed level role ${resultRoleId} from ${member.user.tag}`);
+                    updated = true;
+                }
+            } catch (error) {
+                console.error(`Error updating level roles for ${member.user.tag}:`, error);
+            }
+        }
+    }
+
+    // Handle regular combos normally
+    for (const combo of regularCombos) {
         const hasAllRequiredRoles = combo.requiredRoles.every(roleId => 
             memberHasLevelRole(member, roleId)
         );

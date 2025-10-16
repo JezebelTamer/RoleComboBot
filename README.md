@@ -36,6 +36,8 @@ When they lose ANY required role, the result role is removed.
 
 **Level Roles:** Roles named "Level X" (e.g., "Level 5", "Level 10") are special. If a combo requires "Level 5", members with "Level 10" or higher will also qualify. Level roles can be used as a single requirement (e.g., `!rolecombo add levelID5 resultRoleID`).
 
+**Level Tiers:** When multiple combos use single level roles, they form a tier system. Members only receive the highest level role they qualify for, and lower tier roles are automatically removed.
+
 **How to get role IDs:** Enable Developer Mode in Discord (Settings → Advanced), then right-click a role and select "Copy ID"
 
 ### List all combos
