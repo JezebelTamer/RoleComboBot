@@ -9,9 +9,14 @@ A simple Discord bot that automatically grants roles based on role combinations.
 npm install
 ```
 
-2. Edit `config.json` with your bot token
+2. Create `config.json` from the example:
+```bash
+cp config.json.example config.json
+```
 
-3. Start the bot:
+3. Edit `config.json` with your bot token
+
+4. Start the bot:
 ```bash
 npm start
 ```
