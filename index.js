@@ -21,6 +21,9 @@ const createEmbed = (color, title, description = null) => {
 // Helper to get role name or ID
 const getRoleName = (guild, roleId) => guild.roles.cache.get(roleId)?.name || roleId;
 
+// Helper to check if a role is a level role
+const isLevelRole = (roleName) => /^Level \d+$/i.test(roleName);
+
 // Helper to parse role IDs from string
 const parseRoleIds = (str, guild) => str.split(',')
     .map(id => id.trim().replace(/[<@&>]/g, ''))
@@ -67,6 +70,15 @@ async function handleAdd(message, args) {
     }
     if (requiredRoles.includes(resultRoleId)) {
         return message.reply('❌ The result role cannot be one of the required roles.');
+    }
+
+    // Check for multiple level roles
+    const levelRoles = requiredRoles.filter(id => {
+        const role = message.guild.roles.cache.get(id);
+        return role && isLevelRole(role.name);
+    });
+    if (levelRoles.length > 1) {
+        return message.reply('❌ You can only have one level role requirement per combo.');
     }
 
     // Check for duplicates
