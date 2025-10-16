@@ -11,6 +11,10 @@ const client = new Client({
     ]
 });
 
+// Track last role check time for each member (10 minute cooldown)
+const lastRoleCheck = new Map();
+const ROLE_CHECK_COOLDOWN = 10 * 60 * 1000; // 10 minutes in milliseconds
+
 // Helper to create embeds
 const createEmbed = (color, title, description = null) => {
     const embed = new EmbedBuilder().setColor(color).setTitle(title).setTimestamp();
@@ -36,7 +40,19 @@ client.once('clientReady', () => {
 
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
-    if (message.member) await checkMemberRoles(message.member);
+    
+    // Check roles with cooldown to avoid rate limits
+    if (message.member) {
+        const memberId = message.member.id;
+        const lastCheck = lastRoleCheck.get(memberId);
+        const now = Date.now();
+        
+        if (!lastCheck || (now - lastCheck) >= ROLE_CHECK_COOLDOWN) {
+            await checkMemberRoles(message.member);
+            lastRoleCheck.set(memberId, now);
+        }
+    }
+    
     if (!message.content.startsWith('!')) return;
 
     const args = message.content.slice(1).trim().split(/\s+/);
