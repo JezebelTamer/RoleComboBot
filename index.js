@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, PermissionFlagsBits } = require('discord.js');
+const { Client, GatewayIntentBits, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
 const config = require('./config.json');
 const { saveRoleCombo, getRoleCombos, deleteRoleCombo, checkMemberRoles } = require('./utils/roleComboManager');
 
@@ -99,10 +99,27 @@ client.on('messageCreate', async (message) => {
 
         const combo = saveRoleCombo(message.guild.id, requiredRoles, resultRoleId);
 
-        const requiredRoleNames = requiredRoles.map(id => `<@&${id}>`).join(', ');
-        const resultRoleName = `<@&${resultRoleId}>`;
+        const requiredRoleNames = requiredRoles.map(id => {
+            const role = message.guild.roles.cache.get(id);
+            return role ? role.name : id;
+        }).join(', ');
+        const resultRoleName = resultRole.name;
 
-        await message.reply(`✅ Role combo created!\n\n**Required Roles:** ${requiredRoleNames}\n**Result Role:** ${resultRoleName}\n**Combo ID:** ${combo.id}${hierarchyWarning}`);
+        const embed = new EmbedBuilder()
+            .setColor(0x00FF00)
+            .setTitle('✅ Role Combo Created!')
+            .addFields(
+                { name: 'Required Roles', value: requiredRoleNames, inline: false },
+                { name: 'Result Role', value: resultRoleName, inline: false },
+                { name: 'Combo ID', value: combo.id.toString(), inline: false }
+            )
+            .setTimestamp();
+
+        if (hierarchyWarning) {
+            embed.addFields({ name: '⚠️ Warning', value: `The bot's role is not high enough to manage: ${problematicRoles.join(', ')}\nMove the bot's role higher in Server Settings → Roles to fix this.`, inline: false });
+        }
+
+        await message.reply({ embeds: [embed] });
 
         // Check all members
         const members = await message.guild.members.fetch();
@@ -120,17 +137,35 @@ client.on('messageCreate', async (message) => {
         const combos = getRoleCombos(message.guild.id);
 
         if (combos.length === 0) {
-            return message.reply('No role combinations configured for this server.');
+            const embed = new EmbedBuilder()
+                .setColor(0xFFAA00)
+                .setTitle('Role Combinations')
+                .setDescription('No role combinations configured for this server.')
+                .setTimestamp();
+            return message.reply({ embeds: [embed] });
         }
 
-        let response = '**Role Combinations:**\n\n';
+        const embed = new EmbedBuilder()
+            .setColor(0x0099FF)
+            .setTitle('Role Combinations')
+            .setTimestamp();
+
         for (const combo of combos) {
-            const requiredRoles = combo.requiredRoles.map(id => `<@&${id}>`).join(', ');
-            const resultRole = `<@&${combo.resultRole}>`;
-            response += `**ID ${combo.id}:**\nRequired: ${requiredRoles}\nResult: ${resultRole}\n\n`;
+            const requiredRoles = combo.requiredRoles.map(id => {
+                const role = message.guild.roles.cache.get(id);
+                return role ? role.name : id;
+            }).join(', ');
+            const resultRole = message.guild.roles.cache.get(combo.resultRole);
+            const resultRoleName = resultRole ? resultRole.name : combo.resultRole;
+            
+            embed.addFields({
+                name: `ID ${combo.id}`,
+                value: `**Required:** ${requiredRoles}\n**Result:** ${resultRoleName}`,
+                inline: false
+            });
         }
 
-        await message.reply(response);
+        await message.reply({ embeds: [embed] });
 
     } else if (subcommand === 'remove') {
         const id = parseInt(args[1]);
@@ -140,11 +175,22 @@ client.on('messageCreate', async (message) => {
 
         const success = deleteRoleCombo(message.guild.id, id);
 
+        const embed = new EmbedBuilder()
+            .setTimestamp();
+
         if (success) {
-            await message.reply(`✅ Role combo #${id} has been removed.`);
+            embed
+                .setColor(0x00FF00)
+                .setTitle('✅ Role Combo Removed')
+                .setDescription(`Role combo #${id} has been removed.`);
         } else {
-            await message.reply(`❌ Role combo #${id} not found.`);
+            embed
+                .setColor(0xFF0000)
+                .setTitle('❌ Not Found')
+                .setDescription(`Role combo #${id} not found.`);
         }
+
+        await message.reply({ embeds: [embed] });
 
     } else {
         message.reply('Usage: `!rolecombo <add|list|remove>`\n\nExamples:\n`!rolecombo add 123456789,987654321 111222333`\n`!rolecombo list`\n`!rolecombo remove 1`');
