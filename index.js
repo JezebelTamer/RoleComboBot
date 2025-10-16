@@ -101,16 +101,6 @@ async function handleAdd(message, args) {
     }
 
     await message.reply({ embeds: [embed] });
-
-    // Check all members
-    const members = await message.guild.members.fetch();
-    let updatedCount = 0;
-    for (const [, member] of members) {
-        if (await checkMemberRoles(member)) updatedCount++;
-    }
-    if (updatedCount > 0) {
-        await message.reply(`Checked all members and updated ${updatedCount} member(s).`);
-    }
 }
 
 async function handleList(message) {
