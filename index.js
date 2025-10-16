@@ -11,7 +11,7 @@ const client = new Client({
     ]
 });
 
-client.once('ready', () => {
+client.once('clientReady', () => {
     console.log(`Ready! Logged in as ${client.user.tag}`);
     console.log(`Bot is active in ${client.guilds.cache.size} server(s)`);
 });
@@ -70,6 +70,26 @@ client.on('messageCreate', async (message) => {
 
         if (requiredRoles.length < 2) {
             return message.reply('❌ You need at least 2 required roles.');
+        }
+
+        // Check for duplicate combo
+        const existingCombos = getRoleCombos(message.guild.id);
+        const sortedRequiredRoles = [...requiredRoles].sort();
+        
+        const duplicate = existingCombos.find(combo => {
+            const sortedExistingRoles = [...combo.requiredRoles].sort();
+            return combo.resultRole === resultRoleId &&
+                   sortedExistingRoles.length === sortedRequiredRoles.length &&
+                   sortedExistingRoles.every((role, index) => role === sortedRequiredRoles[index]);
+        });
+
+        if (duplicate) {
+            const embed = new EmbedBuilder()
+                .setColor(0xFF0000)
+                .setTitle('❌ Duplicate Combo')
+                .setDescription(`This role combination already exists as combo #${duplicate.id}.`)
+                .setTimestamp();
+            return message.reply({ embeds: [embed] });
         }
 
         // Check bot's role hierarchy
