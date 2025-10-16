@@ -72,12 +72,37 @@ client.on('messageCreate', async (message) => {
             return message.reply('❌ You need at least 2 required roles.');
         }
 
+        // Check bot's role hierarchy
+        const botMember = await message.guild.members.fetchMe();
+        const botHighestRole = botMember.roles.highest;
+        const resultRole = message.guild.roles.cache.get(resultRoleId);
+        
+        let hierarchyWarning = '';
+        const problematicRoles = [];
+
+        // Check if bot can manage the result role
+        if (resultRole.position >= botHighestRole.position) {
+            problematicRoles.push(resultRole.name);
+        }
+
+        // Check if bot can check the required roles (less critical but still useful to know)
+        for (const roleId of requiredRoles) {
+            const role = message.guild.roles.cache.get(roleId);
+            if (role.position >= botHighestRole.position) {
+                problematicRoles.push(role.name);
+            }
+        }
+
+        if (problematicRoles.length > 0) {
+            hierarchyWarning = `\n\n⚠️ **Warning:** The bot's role is not high enough to manage: ${problematicRoles.join(', ')}\nMove the bot's role higher in Server Settings → Roles to fix this.`;
+        }
+
         const combo = saveRoleCombo(message.guild.id, requiredRoles, resultRoleId);
 
         const requiredRoleNames = requiredRoles.map(id => `<@&${id}>`).join(', ');
         const resultRoleName = `<@&${resultRoleId}>`;
 
-        await message.reply(`✅ Role combo created!\n\n**Required Roles:** ${requiredRoleNames}\n**Result Role:** ${resultRoleName}\n**Combo ID:** ${combo.id}`);
+        await message.reply(`✅ Role combo created!\n\n**Required Roles:** ${requiredRoleNames}\n**Result Role:** ${resultRoleName}\n**Combo ID:** ${combo.id}${hierarchyWarning}`);
 
         // Check all members
         const members = await message.guild.members.fetch();
