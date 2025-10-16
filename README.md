@@ -22,12 +22,14 @@ All commands require Administrator permissions.
 
 ### Add a role combo
 ```
-!rolecombo add @role1,@role2 @resultRole
+!rolecombo add roleID1,roleID2 resultRoleID
 ```
-Example: `!rolecombo add @Supporter,@Active @VIP`
+Example: `!rolecombo add 123456789,987654321 111222333`
 
 When users have ALL required roles, they get the result role.
 When they lose ANY required role, the result role is removed.
+
+**How to get role IDs:** Enable Developer Mode in Discord (Settings → Advanced), then right-click a role and select "Copy ID"
 
 ### List all combos
 ```
@@ -51,9 +53,9 @@ Example: `!rolecombo remove 1`
 
 ## How It Works
 
-1. Admin runs: `!rolecombo add @Supporter,@Active @VIP`
-2. Bot automatically grants "VIP" to users with both "Supporter" AND "Active" roles
-3. Bot removes "VIP" if they lose either role
+1. Admin runs: `!rolecombo add 123456789,987654321 111222333`
+2. Bot automatically grants the result role to users with both required roles
+3. Bot removes the result role if they lose any required role
 4. Automatic checking on member join and role changes
 
 ## License

@@ -32,16 +32,16 @@ client.on('messageCreate', async (message) => {
     const subcommand = args[0]?.toLowerCase();
 
     if (subcommand === 'add') {
-        // !rolecombo add @role1,@role2,@role3 @resultRole
+        // !rolecombo add roleID1,roleID2,roleID3 resultRoleID
         if (args.length < 2) {
-            return message.reply('Usage: `!rolecombo add @role1,@role2 @resultRole`');
+            return message.reply('Usage: `!rolecombo add roleID1,roleID2 resultRoleID`');
         }
 
         const requiredRolesPart = args[1];
         const resultRolePart = args[2];
 
         if (!requiredRolesPart || !resultRolePart) {
-            return message.reply('Usage: `!rolecombo add @role1,@role2 @resultRole`');
+            return message.reply('Usage: `!rolecombo add roleID1,roleID2 resultRoleID`');
         }
 
         // Parse required roles from mentions
@@ -115,7 +115,7 @@ client.on('messageCreate', async (message) => {
         }
 
     } else {
-        message.reply('Usage: `!rolecombo <add|list|remove>`\n\nExamples:\n`!rolecombo add @role1,@role2 @resultRole`\n`!rolecombo list`\n`!rolecombo remove 1`');
+        message.reply('Usage: `!rolecombo <add|list|remove>`\n\nExamples:\n`!rolecombo add 123456789,987654321 111222333`\n`!rolecombo list`\n`!rolecombo remove 1`');
     }
 });
 
