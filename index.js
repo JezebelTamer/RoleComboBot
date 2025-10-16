@@ -65,6 +65,9 @@ async function handleAdd(message, args) {
     if (requiredRoles.length < 2) {
         return message.reply('❌ You need at least 2 required roles.');
     }
+    if (requiredRoles.includes(resultRoleId)) {
+        return message.reply('❌ The result role cannot be one of the required roles.');
+    }
 
     // Check for duplicates
     const existingCombos = getRoleCombos(message.guild.id);
